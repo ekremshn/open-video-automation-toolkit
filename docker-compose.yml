@@ -1,0 +1,14 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: open-video-automation-toolkit
+    restart: unless-stopped
+    ports:
+      - "3101:3101"
+    env_file:
+      - .env
+    volumes:
+      - ./output:/app/output
+      - ./temp:/app/temp
