@@ -12,6 +12,7 @@ An open-source automation toolkit for creating, rendering and publishing videos 
 - Subtitle configuration
 - Environment-variable based configuration
 - Health check endpoint
+- FFmpeg availability and version reporting
 - Automated tests
 - GitHub Actions CI
 - Issue and pull request templates
@@ -81,9 +82,33 @@ Example response:
 | Method | Endpoint | Description |
 |---|---|---|
 | `GET` | `/` | Returns application information |
-| `GET` | `/health` | Returns application health status |
+| `GET` | `/health` | Returns application and FFmpeg health status |
 | `POST` | `/render/jobs` | Creates a new render job |
 | `GET` | `/render/jobs/{job_id}` | Returns render job status |
+
+## Health Check Example
+
+```json
+{
+  "status": "ok",
+  "environment": "development",
+  "timestamp": "2026-07-24T00:00:00+00:00",
+  "ffmpeg_available": true,
+  "ffmpeg_version": "7.1"
+}
+```
+
+If FFmpeg is not installed or cannot be executed, the API remains available and returns:
+
+```json
+{
+  "status": "ok",
+  "environment": "development",
+  "timestamp": "2026-07-24T00:00:00+00:00",
+  "ffmpeg_available": false,
+  "ffmpeg_version": null
+}
+```
 
 ## Project Structure
 
@@ -201,6 +226,7 @@ Version `v0.1.0` provides:
 
 - The initial FastAPI application
 - Render job creation and status endpoints
+- FFmpeg availability and version checks
 - Docker configuration
 - Automated tests
 - GitHub Actions CI
@@ -234,7 +260,7 @@ Start here:
 
 - [Contribution Guide](CONTRIBUTING.md)
 - [Open Issues](https://github.com/ekremshn/open-video-automation-toolkit/issues)
-- [Good First Issue: Add FFmpeg version validation](https://github.com/ekremshn/open-video-automation-toolkit/issues/1)
+- [Good First Issues](https://github.com/ekremshn/open-video-automation-toolkit/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
 
 Please comment on an issue before starting major work to avoid duplicate implementations.
 
