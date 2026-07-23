@@ -1,3 +1,4 @@
+import subprocess
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -21,6 +22,27 @@ def startup() -> None:
     settings.temp_dir.mkdir(parents=True, exist_ok=True)
 
 
+def get_ffmpeg_status() -> tuple[bool, str | None]:
+    try:
+        result = subprocess.run(
+            [settings.ffmpeg_path, "-version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            check=False,
+        )
+    except (FileNotFoundError, PermissionError, subprocess.TimeoutExpired):
+        return False, None
+
+    if result.returncode != 0:
+        return False, None
+
+    first_line = result.stdout.splitlines()[0] if result.stdout else ""
+    version = first_line.removeprefix("ffmpeg version ").split()[0] if first_line else None
+
+    return True, version
+
+
 @app.get("/")
 def root() -> dict[str, str]:
     return {
@@ -31,11 +53,15 @@ def root() -> dict[str, str]:
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
+def health() -> dict[str, str | bool | None]:
+    ffmpeg_available, ffmpeg_version = get_ffmpeg_status()
+
     return {
         "status": "ok",
         "environment": settings.app_env,
         "timestamp": datetime.now(timezone.utc).isoformat(),
+        "ffmpeg_available": ffmpeg_available,
+        "ffmpeg_version": ffmpeg_version,
     }
 
 
