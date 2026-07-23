@@ -1,7 +1,11 @@
 from datetime import datetime, timezone
+from uuid import uuid4
 
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, HTTPException
+
+from app.config import settings
+from app.models import RenderJobRequest, RenderJobResponse, RenderJobStatus
+from app.store import create_job, get_job
 
 
 app = FastAPI(
@@ -11,12 +15,10 @@ app = FastAPI(
 )
 
 
-class RenderJobRequest(BaseModel):
-    topic: str = Field(min_length=3, max_length=200)
-    orientation: str = Field(default="portrait", pattern="^(portrait|landscape)$")
-    duration_seconds: int = Field(default=30, ge=5, le=600)
-    subtitles_enabled: bool = True
-    voice: str | None = None
+@app.on_event("startup")
+def startup() -> None:
+    settings.output_dir.mkdir(parents=True, exist_ok=True)
+    settings.temp_dir.mkdir(parents=True, exist_ok=True)
 
 
 @app.get("/")
@@ -32,14 +34,33 @@ def root() -> dict[str, str]:
 def health() -> dict[str, str]:
     return {
         "status": "ok",
+        "environment": settings.app_env,
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
-@app.post("/render/jobs")
-def create_render_job(request: RenderJobRequest) -> dict:
-    return {
-        "status": "accepted",
-        "message": "Render job accepted for processing.",
-        "job": request.model_dump(),
-    }
+@app.post("/render/jobs", response_model=RenderJobResponse, status_code=202)
+def create_render_job(request: RenderJobRequest) -> RenderJobResponse:
+    job_id = uuid4().hex
+    create_job(job_id, request.model_dump())
+
+    return RenderJobResponse(
+        job_id=job_id,
+        status="accepted",
+        message="Render job accepted for processing.",
+        job=request,
+    )
+
+
+@app.get("/render/jobs/{job_id}", response_model=RenderJobStatus)
+def read_render_job(job_id: str) -> RenderJobStatus:
+    job = get_job(job_id)
+
+    if job is None:
+        raise HTTPException(status_code=404, detail="Render job not found.")
+
+    return RenderJobStatus(
+        job_id=job_id,
+        status=job["status"],
+        progress=job["progress"],
+    )

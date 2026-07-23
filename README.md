@@ -2,44 +2,71 @@
 
 An open-source automation toolkit for creating, rendering and publishing videos with n8n, FFmpeg and AI services.
 
-## Overview
+## Features
 
-Open Video Automation Toolkit helps creators and developers build automated video production workflows.
+- FastAPI-based rendering API
+- Docker and Docker Compose support
+- FFmpeg-ready container
+- Render job creation and status tracking
+- Portrait and landscape video support
+- Subtitle configuration
+- Environment-variable based configuration
+- Health check endpoint
+- Automated tests
+- GitHub Actions CI
+- Issue and pull request templates
 
-The project is designed to support:
+## Quick Start
 
-- AI-assisted script generation
-- Image and video scene processing
-- Text-to-speech integration
-- FFmpeg-based video rendering
-- Automatic subtitles and captions
-- Vertical and horizontal video formats
-- YouTube publishing workflows
-- Google Drive archiving
-- Google Sheets logging
-- Telegram notifications
+```bash
+git clone https://github.com/ekremshn/open-video-automation-toolkit.git
+cd open-video-automation-toolkit
+cp .env.example .env
+docker compose up --build
+```
 
-## Project Goals
+Open:
 
-The main goal of this project is to provide a reusable and self-hosted video automation architecture.
+- API: `http://localhost:3101`
+- Swagger: `http://localhost:3101/docs`
+- Health: `http://localhost:3101/health`
 
-It aims to reduce repetitive work while keeping the workflow transparent, customizable and under the user's control.
+## Example Request
 
-## Planned Architecture
+```bash
+curl -X POST "http://localhost:3101/render/jobs" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "topic": "A calm nature video",
+    "orientation": "portrait",
+    "duration_seconds": 30,
+    "subtitles_enabled": true,
+    "voice": "tr-TR-EmelNeural"
+  }'
+```
+
+## Project Structure
 
 ```text
-Input
-  ↓
-n8n Workflow
-  ↓
-AI Content Generation
-  ↓
-Media Collection
-  ↓
-FFmpeg Rendering
-  ↓
-Quality Control
-  ↓
-YouTube Publishing
-  ↓
-Archive and Logging
+app/                 FastAPI application
+tests/               Automated tests
+.github/             GitHub templates and CI
+output/              Generated videos
+temp/                Temporary render files
+Dockerfile           Container image
+docker-compose.yml   Local orchestration
+```
+
+## Security
+
+Never commit API keys, passwords, tokens, service-account files or private URLs.
+
+Use `.env` locally and keep only placeholder values in `.env.example`.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## License
+
+MIT License.
